@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mamtha Creations — Smart Boutique Billing & Invoicing</title>
+  
+  <!-- Mobile & PWA Meta Tags -->
+  <meta name="theme-color" content="#07C160">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mamtha POS">
+  <meta name="description" content="Professional Invoicing, WhatsApp Billing & UPI QR System for Mamtha Creations Boutique">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%2307C160'/><path d='M30 45 L50 25 L70 45 L50 75 Z' fill='none' stroke='white' stroke-width='6'/><circle cx='50' cy='45' r='8' fill='white'/></svg>">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 (Crisp minimalist icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-mode">
+  <div class="app-container">
+    
+    <!-- TOP NAVIGATION (ColorOS 7 Infinite Header) -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-badge">
+          <div class="brand-icon">
+            <i class="fa-solid fa-scissors"></i>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">Mamtha<span class="brand-dot">.</span></span>
+            <span class="brand-sub" id="navStoreName">Mamtha Creations</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <!-- Quick Stats Pill -->
+        <div class="quick-stat-pill" id="todayStatsPill">
+          <i class="fa-solid fa-chart-simple"></i>
+          <span id="headerStatText">Today: 0 bills (₹0)</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-btn" id="btnSettings" title="Store Profile & Settings">
+          <i class="fa-solid fa-store"></i>
+          <span class="btn-label">Store</span>
+        </button>
+
+        <button class="icon-btn" id="btnHistory" title="Invoice History & Records">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span class="btn-label">History</span>
+          <span class="history-badge" id="historyCount">0</span>
+        </button>
+
+        <button class="icon-btn" id="btnThemeToggle" title="Toggle Light / Dark Mode">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+
+        <button class="btn-primary-squircle" id="btnNewInvoice" title="Start a new blank bill">
+          <i class="fa-solid fa-plus"></i>
+          <span class="btn-label-new">New Bill</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MOBILE SEGMENTED VIEW SWITCHER (Visible on Mobile & Tablets) -->
+    <nav class="mobile-tab-bar" id="mobileTabBar" aria-label="Mobile View Switcher">
+      <button class="mobile-tab-btn active" id="tabBtnEditor" data-target="editor">
+        <i class="fa-solid fa-file-pen"></i>
+        <span>Bill Editor</span>
+      </button>
+      <button class="mobile-tab-btn" id="tabBtnPreview" data-target="preview">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Live Receipt (<span id="mobileGrandTotalPill">₹0</span>)</span>
+      </button>
+    </nav>
+
+    <!-- MAIN BODY: DUAL PANEL -->
+    <main class="main-content">
+      
+      <!-- LEFT COLUMN: INVOICE BUILDER -->
+      <section class="builder-column" id="builderColumn">
+        
+        <!-- CARD 1: Customer Details & Dates -->
+        <div class="cos-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="card-icon"><i class="fa-solid fa-user-tag"></i></span>
+              <h2 class="card-title">Customer &amp; Order Details</h2>
+            </div>
+            <div class="invoice-badge-box">
+              <span class="label-muted">Bill #</span>
+              <input type="text" id="invNumber" class="clean-input-inline" value="INV-001" placeholder="INV-001">
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="form-grid-2">
+              <div class="input-field-group">
+                <label for="custName">Customer Name <span class="required-star">*</span></label>
+                <div class="input-with-icon">
+                  <i class="fa-regular fa-user"></i>
+                  <input type="text" id="custName" placeholder="e.g. Smt. Lakshmi Devi" autocomplete="off">
+                </div>
+              </div>
+
+              <div class="input-field-group">
+                <label for="custPhone">WhatsApp / Mobile Number <span class="required-star">*</span></label>
+                <div class="input-with-icon whatsapp-input-box">
+                  <span class="country-prefix">+91</span>
+                  <input type="tel" id="custPhone" placeholder="9876543210" maxlength="15" autocomplete="off" inputmode="numeric">
+                  <i class="fa-brands fa-whatsapp whatsapp-field-icon"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid-2 mt-3">
+              <div class="input-field-group">
+                <label for="invDate">Order / Billing Date</label>
+                <input type="date" id="invDate">
+              </div>
+
+              <div class="input-field-group">
+                <div class="label-with-presets">
+                  <label for="invDueDate">Delivery / Trial Date</label>
+                  <div class="quick-date-pills">
+                    <button type="button" class="date-pill-btn" data-days="2">+2d</button>
+                    <button type="button" class="date-pill-btn" data-days="4">+4d</button>
+                    <button type="button" class="date-pill-btn" data-days="7">+1w</button>
+                  </div>
+                </div>
+                <input type="date" id="invDueDate">
+              </div>
+            </div>
+
+            <!-- Expandable optional fields -->
+            <div class="details-toggle-row">
+              <button type="button" class="text-link-btn" id="toggleMoreCustDetails">
+                <i class="fa-solid fa-chevron-down" id="toggleCustDetailsIcon"></i>
+                <span>Add Email &amp; City / Address (Optional)</span>
+              </button>
+            </div>
+
+            <div class="more-customer-fields collapsed" id="moreCustFields">
+              <div class="form-grid-2">
+                <div class="input-field-group">
+                  <label for="custAddress">City / Address</label>
+                  <input type="text" id="custAddress" placeholder="e.g. Near Bus Stand, Patancheru">
+                </div>
+                <div class="input-field-group">
+                  <label for="custEmail">Email (Optional)</label>
+                  <input type="email" id="custEmail" placeholder="customer@email.com">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid-2 mt-3">
+              <div class="input-field-group">
+                <label>Payment Status</label>
+                <div class="status-selector-pills">
+                  <label class="status-pill active-paid">
+                    <input type="radio" name="paymentStatus" value="PAID" checked>
+                    <span class="pill-badge"><i class="fa-solid fa-check"></i> Paid</span>
+                  </label>
+                  <label class="status-pill">
+                    <input type="radio" name="paymentStatus" value="PARTIAL">
+                    <span class="pill-badge"><i class="fa-solid fa-clock-half-way"></i> Advance</span>
+                  </label>
+                  <label class="status-pill">
+                    <input type="radio" name="paymentStatus" value="UNPAID">
+                    <span class="pill-badge"><i class="fa-solid fa-hourglass-start"></i> Pending</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="input-field-group">
+                <label for="paymentMode">Payment Mode</label>
+                <select id="paymentMode" class="clean-select">
+                  <option value="UPI / PhonePe" selected>PhonePe / GPay / UPI</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Card (Debit/Credit)">Card (Debit/Credit)</option>
+                  <option value="Net Banking">Net Banking / Transfer</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- CARD 2: Line Items with Categorized Presets & Autocomplete -->
+        <div class="cos-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="card-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+              <h2 class="card-title">Services &amp; Items</h2>
+            </div>
+            <!-- Preset Category Selector Tabs -->
+            <div class="catalog-category-tabs" id="catalogCategoryTabs">
+              <button type="button" class="cat-tab-btn active" data-cat="all">All</button>
+              <button type="button" class="cat-tab-btn" data-cat="blouse">Blouses</button>
+              <button type="button" class="cat-tab-btn" data-cat="saree">Sarees</button>
+              <button type="button" class="cat-tab-btn" data-cat="dress">Dresses</button>
+              <button type="button" class="cat-tab-btn" data-cat="finishing">Finishing</button>
+            </div>
+          </div>
+
+          <!-- Quick preset chips container -->
+          <div class="quick-chips-scroll-wrap">
+            <div class="quick-chips-wrapper" id="presetChipsContainer">
+              <!-- Dynamically rendered categorized chips -->
+            </div>
+          </div>
+
+          <div class="card-body p-0 mt-2">
+            <!-- Table Header (Desktop Only) -->
+            <div class="items-table-header">
+              <div class="col-item-desc">Item / Service &amp; Tailoring Notes</div>
+              <div class="col-item-qty">Qty</div>
+              <div class="col-item-price">Rate (₹)</div>
+              <div class="col-item-total">Total (₹)</div>
+              <div class="col-item-action"></div>
+            </div>
+
+            <!-- Table Rows Container -->
+            <div class="items-list" id="itemsList">
+              <!-- Dynamically populated rows -->
+            </div>
+
+            <!-- Add Row Button & Shortcuts -->
+            <div class="table-footer-actions">
+              <button type="button" class="btn-ghost-squircle" id="btnAddItemRow">
+                <i class="fa-solid fa-plus"></i> Add Item / Custom Service
+              </button>
+              <span class="shortcut-tip">Tip: Press <code>Enter</code> on price to quickly add next item</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: Calculations, Advance, Discount, Tax & Terms -->
+        <div class="cos-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="card-icon"><i class="fa-solid fa-calculator"></i></span>
+              <h2 class="card-title">Billing Summary &amp; Advance</h2>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="calc-grid">
+              
+              <div class="calc-controls">
+                <div class="form-grid-2">
+                  <div class="input-field-group">
+                    <label for="discountVal">Discount</label>
+                    <div class="input-addon-group">
+                      <input type="number" id="discountVal" placeholder="0" min="0" step="any" value="0" inputmode="decimal">
+                      <select id="discountType" class="addon-select">
+                        <option value="FLAT">Flat (₹)</option>
+                        <option value="PERCENT">%</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="input-field-group">
+                    <label for="taxVal">Tax / GST (Optional)</label>
+                    <div class="input-addon-group">
+                      <input type="number" id="taxVal" placeholder="0" min="0" step="any" value="0" inputmode="decimal">
+                      <select id="taxType" class="addon-select">
+                        <option value="PERCENT">%</option>
+                        <option value="FLAT">Flat (₹)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Advance Received & Balance Due (Crucial for Tailoring/Boutiques) -->
+                <div class="form-grid-2 mt-2" id="amountPaidRow" style="display: none;">
+                  <div class="input-field-group">
+                    <label for="amountPaid">Advance Amount Received</label>
+                    <div class="input-with-icon">
+                      <span class="input-inline-currency">₹</span>
+                      <input type="number" id="amountPaid" placeholder="0.00" min="0" step="any" inputmode="decimal">
+                    </div>
+                  </div>
+                  <div class="input-field-group">
+                    <label>Balance Due on Delivery</label>
+                    <div class="balance-display" id="balanceDueDisplay">₹0.00</div>
+                  </div>
+                </div>
+
+                <div class="input-field-group mt-3">
+                  <label for="invNotes">Customer Terms / Notes</label>
+                  <input type="text" id="invNotes" placeholder="Thank you for choosing Mamtha Creations!" value="Thank you for choosing Mamtha Creations! We appreciate your visit.">
+                </div>
+              </div>
+
+              <!-- Summary Totals Pill Card -->
+              <div class="calc-totals-box">
+                <div class="tot-row">
+                  <span class="tot-label">Subtotal</span>
+                  <span class="tot-val" id="calcSubtotal">₹0.00</span>
+                </div>
+                <div class="tot-row text-muted" id="calcDiscountRow" style="display: none;">
+                  <span class="tot-label">Discount</span>
+                  <span class="tot-val discount-val" id="calcDiscount">- ₹0.00</span>
+                </div>
+                <div class="tot-row text-muted" id="calcTaxRow" style="display: none;">
+                  <span class="tot-label">Tax / GST</span>
+                  <span class="tot-val tax-val" id="calcTax">+ ₹0.00</span>
+                </div>
+                <div class="tot-divider"></div>
+                <div class="tot-row grand-total-row">
+                  <span class="tot-label">Grand Total</span>
+                  <span class="tot-val grand-total-val" id="calcGrandTotal">₹0.00</span>
+                </div>
+                <div class="tot-row text-paid" id="calcAdvanceRow" style="display: none;">
+                  <span class="tot-label">Advance Paid</span>
+                  <span class="tot-val" id="calcAdvanceVal">₹0.00</span>
+                </div>
+                <div class="tot-row text-danger-highlight" id="calcBalanceRow" style="display: none;">
+                  <span class="tot-label">Balance on Delivery</span>
+                  <span class="tot-val" id="calcBalanceVal">₹0.00</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- STICKY ACTION BAR (ColorOS 7 Bottom Dock) -->
+        <div class="bottom-action-dock" id="bottomDock">
+          <div class="dock-quick-row">
+            <button class="btn-dock-outline" id="btnResetBill" title="Clear and start new bill">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span class="dock-btn-text">Reset</span>
+            </button>
+            <button class="btn-dock-outline" id="btnFillSample" title="Fill sample demo bill">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span class="dock-btn-text">Demo Sample</span>
+            </button>
+            <button class="btn-dock-save" id="btnSaveInvoice" title="Save bill to history">
+              <i class="fa-regular fa-bookmark"></i>
+              <span class="dock-btn-text">Save</span>
+            </button>
+            <button class="btn-dock-print" id="btnPrintInvoice" title="Print receipt or save as PDF">
+              <i class="fa-solid fa-print"></i>
+              <span class="dock-btn-text">Print / PDF</span>
+            </button>
+            <button class="btn-dock-toggle-preview" id="btnDockTogglePreview" title="Toggle between Editor and Receipt Preview">
+              <i class="fa-regular fa-eye"></i>
+              <span class="dock-btn-text">Preview</span>
+            </button>
+          </div>
+
+          <div class="dock-cta-row">
+            <!-- COLOROS 7 WHATSAPP DIRECT ACTION BUTTON -->
+            <button class="btn-coloros-whatsapp" id="btnDirectWhatsApp" title="Send live bill to customer via WhatsApp">
+              <div class="wa-btn-icon">
+                <i class="fa-brands fa-whatsapp"></i>
+              </div>
+              <div class="wa-btn-content">
+                <span class="wa-btn-primary">Send on WhatsApp</span>
+                <span class="wa-btn-sub">Instant to Customer Phone</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: LIVE MINIMALIST INVOICE PREVIEW -->
+      <aside class="preview-column" id="previewColumn">
+        <div class="preview-sticky-wrap">
+          
+          <div class="preview-header-bar">
+            <div class="preview-title">
+              <i class="fa-regular fa-eye"></i>
+              <span>Live Receipt Preview</span>
+            </div>
+            <div class="preview-actions">
+              <button class="action-chip-btn" id="btnToggleSlipStyle" title="Switch Invoice / Thermal Slip Style">
+                <i class="fa-solid fa-sliders"></i> <span id="slipStyleLabel">Thermal Slip</span>
+              </button>
+              <button class="action-chip-btn" id="btnQuickCopyText" title="Copy text summary">
+                <i class="fa-regular fa-copy"></i> Copy Text
+              </button>
+              <button class="action-chip-btn mobile-back-to-editor" id="btnBackToEditor" title="Back to bill editor">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Bill
+              </button>
+            </div>
+          </div>
+
+          <!-- THE BILL SHEET (Can be printed) -->
+          <div class="bill-sheet-paper" id="printableBillArea">
+            
+            <!-- Receipt Watermark / Status Stamp -->
+            <div class="receipt-stamp-badge stamp-paid" id="receiptStamp">
+              <span>PAID</span>
+            </div>
+
+            <!-- STORE HEADER -->
+            <div class="receipt-brand-header">
+              <div class="receipt-store-logo" id="previewStoreIcon">
+                <i class="fa-solid fa-scissors"></i>
+              </div>
+              <h1 class="receipt-store-title" id="previewStoreName">Mamtha Creations</h1>
+              <p class="receipt-store-tagline" id="previewStoreTagline">Bespoke Fashion &amp; Bridal Stitching Studio</p>
+              <div class="receipt-store-meta" id="previewStoreContact">
+                <span><i class="fa-solid fa-location-dot"></i> <span id="previewStoreAddress">Patancheru, Hyderabad, Telangana</span></span>
+                <span><i class="fa-solid fa-phone"></i> <span id="previewStorePhone">+91 9515072693</span></span>
+                <span id="previewStoreGstWrap" style="display:none;"><i class="fa-solid fa-id-card"></i> GSTIN: <span id="previewStoreGst"></span></span>
+              </div>
+            </div>
+
+            <div class="receipt-divider-dash"></div>
+
+            <!-- INVOICE METADATA ROW -->
+            <div class="receipt-meta-grid">
+              <div class="meta-col">
+                <span class="meta-small-label">BILLED TO</span>
+                <div class="meta-strong-val" id="previewCustName">Walk-in Customer</div>
+                <div class="meta-sub-val" id="previewCustPhone">+91 ----------</div>
+                <div class="meta-sub-val" id="previewCustAddress" style="display:none;"></div>
+              </div>
+              <div class="meta-col text-right">
+                <span class="meta-small-label">INVOICE NUMBER</span>
+                <div class="meta-strong-val invoice-highlight" id="previewInvNum">INV-001</div>
+                <div class="meta-sub-val"><span id="previewInvDate">12 Nov 2026</span></div>
+                <div class="meta-sub-val delivery-highlight" id="previewDueDateWrap" style="display:none;">
+                  <i class="fa-regular fa-calendar-check"></i> Delivery: <span id="previewDueDate">-</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ITEMS TABLE -->
+            <div class="receipt-table-wrapper">
+              <table class="receipt-table">
+                <thead>
+                  <tr>
+                    <th class="th-item">ITEM / SERVICE</th>
+                    <th class="th-qty">QTY</th>
+                    <th class="th-price">PRICE</th>
+                    <th class="th-amount">AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody id="previewItemsBody">
+                  <!-- Live rows rendered here -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- TOTALS SUMMARY -->
+            <div class="receipt-summary-container">
+              <div class="receipt-sum-row">
+                <span>Subtotal</span>
+                <span id="previewSubtotal">₹0.00</span>
+              </div>
+              <div class="receipt-sum-row" id="previewDiscountRow" style="display: none;">
+                <span id="previewDiscountLabel">Discount</span>
+                <span id="previewDiscount">- ₹0.00</span>
+              </div>
+              <div class="receipt-sum-row" id="previewTaxRow" style="display: none;">
+                <span id="previewTaxLabel">Tax (GST)</span>
+                <span id="previewTax">+ ₹0.00</span>
+              </div>
+              <div class="receipt-sum-divider"></div>
+              <div class="receipt-sum-row receipt-grand-total">
+                <span>Grand Total</span>
+                <span id="previewGrandTotal">₹0.00</span>
+              </div>
+              <div class="receipt-sum-row receipt-paid-row" id="previewPaidRow" style="display: none;">
+                <span>Advance Paid</span>
+                <span id="previewPaid">₹0.00</span>
+              </div>
+              <div class="receipt-sum-row receipt-due-row" id="previewDueRow" style="display: none;">
+                <span class="balance-due-label"><i class="fa-solid fa-triangle-exclamation"></i> Balance on Delivery</span>
+                <span id="previewDue">₹0.00</span>
+              </div>
+              <div class="receipt-sum-row receipt-mode-row">
+                <span class="text-muted">Payment Mode</span>
+                <span class="mode-val" id="previewPaymentMode">PhonePe / UPI</span>
+              </div>
+            </div>
+
+            <!-- QR PAYMENT / UPI CODE (PhonePe QR from User) -->
+            <div class="receipt-qr-section" id="receiptQrWrap">
+              <div class="qr-box">
+                <img id="receiptQrImage" src="qr-code.jpg" alt="Payment QR Code">
+              </div>
+              <div class="qr-info">
+                <span class="qr-title"><i class="fa-solid fa-qrcode"></i> Scan to Pay via PhonePe / UPI</span>
+                <span class="qr-sub" id="receiptUpiId">9515072693@ybl</span>
+                <span class="qr-note">Accepts PhonePe, GPay, Paytm, BHIM &amp; all UPI Apps</span>
+                <a href="#" class="btn-pay-upi-direct" id="btnDirectUpiPayLink" target="_blank">
+                  <i class="fa-solid fa-mobile-screen-button"></i> Pay via UPI App
+                </a>
+              </div>
+            </div>
+
+            <!-- FOOTER NOTE & THANKS -->
+            <div class="receipt-footer-section">
+              <p class="receipt-note-msg" id="previewNoteMsg">Thank you for choosing Mamtha Creations!</p>
+              <div class="receipt-barcode">
+                <div class="barcode-bars"></div>
+                <span class="barcode-number" id="previewBarcodeNum">MAMTHA-INV-001</span>
+              </div>
+              <p class="receipt-powered">Mamtha Creations • Bespoke Fashion Studio</p>
+            </div>
+
+          </div>
+
+          <!-- Quick Share Strip Below Sheet -->
+          <div class="quick-share-strip">
+            <button class="strip-wa-btn" id="btnPreviewWaShare">
+              <i class="fa-brands fa-whatsapp"></i> Send Direct WhatsApp Bill
+            </button>
+            <button class="strip-share-btn" id="btnNativeWebShare" title="Share via Android / iOS Share Sheet">
+              <i class="fa-solid fa-share-nodes"></i> Share Bill
+            </button>
+          </div>
+
+        </div>
+      </aside>
+
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- MODAL 1: WHATSAPP DIRECT SENDER & CUSTOMIZER (ColorOS 7 Sheet Style) -->
+    <div class="cos-modal-backdrop" id="modalWhatsApp">
+      <div class="cos-modal-dialog">
+        <div class="cos-modal-header">
+          <div class="modal-title-wrap">
+            <div class="wa-circle-icon">
+              <i class="fa-brands fa-whatsapp"></i>
+            </div>
+            <div>
+              <h3 class="modal-title">Send Bill on WhatsApp</h3>
+              <p class="modal-subtitle">Formatted instant message for your customer</p>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="btnCloseWaModal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="cos-modal-body">
+          <!-- WhatsApp Template Switcher -->
+          <div class="wa-template-switcher">
+            <label class="wa-tpl-pill active" data-tpl="invoice">
+              <input type="radio" name="waTemplate" value="invoice" checked>
+              <span>🧾 Full Bill</span>
+            </label>
+            <label class="wa-tpl-pill" data-tpl="ready">
+              <input type="radio" name="waTemplate" value="ready">
+              <span>👗 Ready for Pickup</span>
+            </label>
+            <label class="wa-tpl-pill" data-tpl="reminder">
+              <input type="radio" name="waTemplate" value="reminder">
+              <span>⏳ Balance Due</span>
+            </label>
+          </div>
+
+          <div class="wa-recipient-box">
+            <div class="wa-recip-label">Sending to:</div>
+            <div class="wa-recip-details">
+              <span class="wa-recip-name" id="waModalCustName">Customer Name</span>
+              <span class="wa-recip-phone" id="waModalCustPhone">+91 ----------</span>
+            </div>
+          </div>
+
+          <div class="wa-message-preview-container">
+            <div class="wa-preview-bubble-header">
+              <i class="fa-brands fa-whatsapp text-whatsapp"></i> WhatsApp Message Preview
+            </div>
+            <div class="wa-chat-bubble" id="waMessageText">
+              <!-- Rendered preview of WhatsApp formatted text -->
+            </div>
+          </div>
+
+          <div class="input-field-group mt-3">
+            <label for="waCustomNote">Custom Message / Greeting (Optional)</label>
+            <input type="text" id="waCustomNote" placeholder="e.g. Please bring the old blouse for fitting check!">
+          </div>
+        </div>
+
+        <div class="cos-modal-footer">
+          <button class="btn-ghost-squircle" id="btnCopyWaText">
+            <i class="fa-regular fa-copy"></i> Copy Text
+          </button>
+          <button class="btn-coloros-whatsapp modal-wa-cta" id="btnExecuteWhatsAppSend">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>Open &amp; Send on WhatsApp</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: STORE / BUSINESS PROFILE SETTINGS -->
+    <div class="cos-modal-backdrop" id="modalSettings">
+      <div class="cos-modal-dialog">
+        <div class="cos-modal-header">
+          <div class="modal-title-wrap">
+            <div class="settings-circle-icon">
+              <i class="fa-solid fa-store"></i>
+            </div>
+            <div>
+              <h3 class="modal-title">Store &amp; Business Profile</h3>
+              <p class="modal-subtitle">Customise details shown on bills and WhatsApp messages</p>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="btnCloseSettingsModal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="cos-modal-body">
+          <div class="form-grid-2">
+            <div class="input-field-group">
+              <label for="setStoreName">Store / Studio Name</label>
+              <input type="text" id="setStoreName" placeholder="Mamtha Creations">
+            </div>
+            <div class="input-field-group">
+              <label for="setStoreTagline">Tagline / Business Description</label>
+              <input type="text" id="setStoreTagline" placeholder="Bespoke Fashion &amp; Bridal Stitching Studio">
+            </div>
+          </div>
+
+          <div class="form-grid-2 mt-2">
+            <div class="input-field-group">
+              <label for="setStorePhone">Business Contact / WhatsApp</label>
+              <input type="text" id="setStorePhone" placeholder="+91 9515072693">
+            </div>
+            <div class="input-field-group">
+              <label for="setStoreGst">GSTIN / Tax ID (Optional)</label>
+              <input type="text" id="setStoreGst" placeholder="Optional">
+            </div>
+          </div>
+
+          <div class="input-field-group mt-2">
+            <label for="setStoreAddress">Address / Location</label>
+            <input type="text" id="setStoreAddress" placeholder="Patancheru, Hyderabad, Telangana">
+          </div>
+
+          <div class="form-grid-2 mt-2">
+            <div class="input-field-group">
+              <label for="setCurrency">Currency Symbol</label>
+              <select id="setCurrency">
+                <option value="₹" selected>₹ (INR - Indian Rupee)</option>
+                <option value="$">$ (USD - US Dollar)</option>
+                <option value="AED">AED (UAE Dirham)</option>
+                <option value="€">€ (EUR - Euro)</option>
+                <option value="£">£ (GBP - British Pound)</option>
+              </select>
+            </div>
+
+            <div class="input-field-group">
+              <label for="setUpiId">UPI ID for Payments</label>
+              <input type="text" id="setUpiId" placeholder="9515072693@ybl">
+            </div>
+          </div>
+
+          <div class="input-field-group mt-2">
+            <label for="setDefaultNotes">Default Bill Footer Terms / Note</label>
+            <input type="text" id="setDefaultNotes" placeholder="Thank you for choosing Mamtha Creations! We appreciate your visit.">
+          </div>
+        </div>
+
+        <div class="cos-modal-footer">
+          <button class="btn-ghost-squircle" id="btnCancelSettings">Cancel</button>
+          <button class="btn-primary-squircle" id="btnSaveSettings">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: INVOICE HISTORY & BUSINESS INSIGHTS -->
+    <div class="cos-modal-backdrop" id="modalHistory">
+      <div class="cos-modal-dialog modal-wide">
+        <div class="cos-modal-header">
+          <div class="modal-title-wrap">
+            <div class="history-circle-icon">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+              <h3 class="modal-title">Past Invoices &amp; Orders</h3>
+              <p class="modal-subtitle">Track orders, collect balance dues, re-send to WhatsApp</p>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="btnCloseHistoryModal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="cos-modal-body">
+          <!-- History Metrics Summary Cards -->
+          <div class="history-metrics-row">
+            <div class="metric-squircle">
+              <span class="metric-title">Total Orders</span>
+              <span class="metric-number" id="metricTotalBills">0</span>
+            </div>
+            <div class="metric-squircle">
+              <span class="metric-title">Total Collected</span>
+              <span class="metric-number text-success" id="metricTotalRevenue">₹0.00</span>
+            </div>
+            <div class="metric-squircle">
+              <span class="metric-title">Balance Pending to Collect</span>
+              <span class="metric-number text-danger" id="metricTotalPending">₹0.00</span>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="history-toolbar">
+            <div class="search-input-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="historySearchInput" placeholder="Search by customer name, phone, or bill #...">
+            </div>
+            <div class="history-actions-right">
+              <div class="history-status-filters" id="historyStatusFilters">
+                <button type="button" class="hist-filter-pill active" data-filter="ALL">All</button>
+                <button type="button" class="hist-filter-pill" data-filter="PARTIAL">Advance</button>
+                <button type="button" class="hist-filter-pill" data-filter="PAID">Paid</button>
+                <button type="button" class="hist-filter-pill" data-filter="UNPAID">Pending</button>
+              </div>
+              <button class="action-chip-btn" id="btnExportCsv" title="Export invoices to CSV / Excel">
+                <i class="fa-solid fa-file-csv"></i> Export CSV
+              </button>
+              <button class="action-chip-btn danger-hover" id="btnClearHistory" title="Delete all invoices">
+                <i class="fa-regular fa-trash-can"></i> Clear All
+              </button>
+            </div>
+          </div>
+
+          <!-- Invoices List Container -->
+          <div class="history-table-container">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Bill #</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Delivery</th>
+                  <th>Total</th>
+                  <th>Balance Due</th>
+                  <th>Status</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <!-- Dynamically loaded rows -->
+              </tbody>
+            </table>
+            <div class="empty-history-state" id="emptyHistoryState">
+              <i class="fa-regular fa-folder-open"></i>
+              <p>No invoices saved yet. Create your first bill!</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="cos-modal-footer">
+          <button class="btn-ghost-squircle" id="btnCloseHistory">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION POPUP -->
+    <div class="cos-toast" id="cosToast">
+      <i class="fa-solid fa-circle-check toast-icon" id="toastIcon"></i>
+      <span class="toast-message" id="toastMessage">Action completed successfully!</span>
+    </div>
+
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
